@@ -3,19 +3,10 @@
 #include <SFML/Window/Mouse.hpp>
 #include <iostream>
 #include <string>
+#include <thread>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
-
-
-bool isMouseInWindow(sf::Vector2i windowPosition, sf::Vector2u windowSize, sf::Vector2i mousePosition)
-{
-    int xBegin = windowPosition.x;
-    int xEnd = windowPosition.x + windowSize.x;
-    int yBegin = windowPosition.y;
-    int yEnd = windowPosition.y + windowSize.y;
-
-    return (xBegin <= mousePosition.x && mousePosition.x <= xEnd) && (yBegin <= mousePosition.y && mousePosition.y <= yEnd);
-}
+#include "GameManager.h"
 
 
 sf::Font fontRegular;
@@ -74,8 +65,33 @@ void setupMenu(sf::RenderWindow& menuWindow) {
     menuButtons[selectedIndex]->setFillColor(sf::Color(255, 218, 26)); // Highlight first button
 }
 
-void Start(){}
+sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
+std::thread gameThread;
 
+void StartThreadForGame() {
+    if (GameManager::threadActive) return;
+    std::cout << "Starting GameManager in a new thread...\n";
+
+    // Create a new thread and start the game
+    gameThread = std::thread(GameManager::Start);
+
+    // Detach the thread to run independently
+    gameThread.detach();
+
+    std::cout << "GameManager launched.\n";
+}
+
+void Exit() {
+    // Wait for the game thread to complete before shutting down
+    if (gameThread.joinable()) {
+        gameThread.join();
+    }
+
+    GameManager::Stop(); // Call Kill function directly (not through thread)
+    
+    while (!GameManager::threadDone){}
+    menuWindow.close();
+}
 
 void handleKeyboardEvent(sf::RenderWindow& menuWindow, sf::Keyboard::Key key)
 {
@@ -91,21 +107,21 @@ void handleKeyboardEvent(sf::RenderWindow& menuWindow, sf::Keyboard::Key key)
     }
     else if (key == sf::Keyboard::Key::Enter || key == sf::Keyboard::Key::Space) {
         if (menuButtons[selectedIndex]->getString() == "Start") {
-            Start();
+            StartThreadForGame();
         }
         else if (menuButtons[selectedIndex]->getString() == "Exit") {
-            menuWindow.close();
+            Exit();
         }
     }
     else if (key == sf::Keyboard::Key::Escape) {
-        menuWindow.close();
+        Exit();
     }
 }
 
 
 int main()
 {
-    sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
+    
     setupMenu(menuWindow);
     setupTextures();
     sf::Sprite alien_1_sprite(alien_1_texture);
@@ -126,25 +142,13 @@ int main()
             // "close requested" event: we close the window
             if (event->is<sf::Event::Closed>())
             {
-                menuWindow.close();
+                Exit();
             } 
             else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 handleKeyboardEvent(menuWindow, keyPressed->code);
             }
         }
-
-
-
-
-
-
-
-
-
-        sf::Vector2i windowPosition = menuWindow.getPosition();
-        sf::Vector2u windowSize = menuWindow.getSize();
-        sf::Vector2i mousePosition = sf::Mouse::getPosition();   
         
         menuWindow.clear(sf::Color(0, 81, 186));
 
