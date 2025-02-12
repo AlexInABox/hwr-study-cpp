@@ -35,21 +35,19 @@ void setupTextures() {
 }
 
 void setupSprites(sf::RenderWindow& menuWindow, sf::Sprite* alien_sprites[]) {
-
-    
     sf::Texture* alien_textures[] = { &alien_1_texture, &alien_2_texture, &alien_3_texture, &alien_4_texture, &alien_5_texture };
 
     for (int i = 0; i < 5; ++i) {
         alien_sprites[i]->setScale({0.28f, 0.28f});
-        alien_sprites[i]->setOrigin({0.f, alien_textures[i]->getSize().y});
-        alien_sprites[i]->setPosition({5.f + (i * 120), menuWindow.getSize().y + 0});
+        alien_sprites[i]->setOrigin({0.f, static_cast<float>(alien_textures[i]->getSize().y)});
+        alien_sprites[i]->setPosition({5.f + (i * 120), static_cast<float>(menuWindow.getSize().y) + 0});
     }
 
     alien_sprites[2]->setScale({0.43f, 0.43f});
-    alien_sprites[2]->setPosition({5.f + (220), menuWindow.getSize().y + 30});
+    alien_sprites[2]->setPosition({5.f + 220, static_cast<float>(menuWindow.getSize().y) + 30});
 
     alien_sprites[3]->setScale({0.40f, 0.40f});
-    alien_sprites[3]->setPosition({5.f + (350), menuWindow.getSize().y + 30});
+    alien_sprites[3]->setPosition({5.f + 350, static_cast<float>(menuWindow.getSize().y) + 30});
 }
 
 void setupMenu(sf::RenderWindow& menuWindow) {
