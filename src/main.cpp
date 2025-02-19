@@ -3,7 +3,6 @@
 #include <SFML/Window/Mouse.hpp>
 #include <iostream>
 #include <string>
-#include <thread>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
 #include "WindowManager.h"
@@ -71,27 +70,32 @@ void setupMenu(sf::RenderWindow &menuWindow)
 
 sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
 
-std::vector<std::thread> active_windows_threads;
-std::vector<WindowManager> active_windowManagers;
+std::vector<std::unique_ptr<WindowManager>> active_windowManagers;
 std::vector<sf::RenderWindow> active_windows;
-void StartThreadForGame()
+
+void StartGame()
 {
-
-    // Set up some windows
-    for (int i = 0; i < 30; i++)
+    // Set up windows
+    for (int i = 0; i < 20; i++)
     {
-        active_windows.push_back(sf::RenderWindow(sf::VideoMode({100u, 100u}), "", sf::Style::None));
-        active_windowManagers.push_back(WindowManager(active_windows[i]));
+        active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
     }
+
     sf::Vector2i mousePosition = sf::Mouse::getPosition();
-    for (int i = 0; i < active_windows.size(); i++)
-    {
-        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 500, i, active_windows.size()));
-        active_windows[i].setFramerateLimit(30);
-    }
 
     for (int i = 0; i < active_windows.size(); i++)
     {
+        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()) / 2);
+        active_windows[i]
+            .setFramerateLimit(30);
+        active_windows[i].clear();
+        active_windows[i].display();
+    }
+
+    // Create WindowManagers
+    for (int i = 0; i < active_windows.size(); i++)
+    {
+        active_windowManagers.push_back(std::make_unique<WindowManager>(active_windows[i]));
     }
 
     std::cout << "GameManager launched.\n";
@@ -99,6 +103,12 @@ void StartThreadForGame()
 
 void Exit()
 {
+    menuWindow.close();
+
+    for (auto &manager : active_windowManagers)
+    {
+        manager->close();
+    }
 }
 
 void handleKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
@@ -119,7 +129,7 @@ void handleKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
     {
         if (menuButtons[selectedIndex]->getString() == "Start")
         {
-            StartThreadForGame();
+            StartGame();
         }
         else if (menuButtons[selectedIndex]->getString() == "Exit")
         {
@@ -147,6 +157,8 @@ int main()
 
     while (menuWindow.isOpen())
     {
+        sf::Vector2i mousePosition = sf::Mouse::getPosition();
+
         // check all the window's events that were triggered since the last iteration of the loop
         while (const std::optional event = menuWindow.pollEvent())
         {
@@ -168,11 +180,48 @@ int main()
             menuWindow.draw(*menuButtons[i]);
         }
 
+        // Create and configure the text
+        sf::Text mouseXText = sf::Text(fontBold);
+        mouseXText.setString(std::to_string(mousePosition.x));
+        mouseXText.setCharacterSize(24);
+        menuWindow.draw(mouseXText);
+
+        // Create and configure the text
+        sf::Text mouseYText = sf::Text(fontBold);
+        mouseYText.setString(std::to_string(mousePosition.y));
+        mouseYText.setCharacterSize(24);
+        mouseYText.setPosition(sf::Vector2f(100, 0));
+        menuWindow.draw(mouseYText);
+
+        if (!active_windows.empty())
+        {
+
+            // Create and configure the text
+            sf::Text windowXText = sf::Text(fontBold);
+            windowXText.setString(std::to_string(active_windows[0].getPosition().x));
+            windowXText.setCharacterSize(24);
+            windowXText.setPosition(sf::Vector2f(0, 50));
+            menuWindow.draw(windowXText);
+
+            // Create and configure the text
+            sf::Text windowYText = sf::Text(fontBold);
+            windowYText.setString(std::to_string(active_windows[0].getPosition().y));
+            windowYText.setCharacterSize(24);
+            windowYText.setPosition(sf::Vector2f(100, 50));
+            menuWindow.draw(windowYText);
+        }
+
         menuWindow.draw(alien_1_sprite);
         menuWindow.draw(alien_2_sprite);
         menuWindow.draw(alien_3_sprite);
         menuWindow.draw(alien_4_sprite);
         menuWindow.draw(alien_5_sprite);
         menuWindow.display();
+
+        mousePosition = sf::Mouse::getPosition() / 2;
+        for (auto &manager : active_windowManagers)
+        {
+            manager->update(mousePosition);
+        }
     }
 }
