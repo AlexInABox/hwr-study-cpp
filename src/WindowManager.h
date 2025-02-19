@@ -14,6 +14,8 @@ public:
         windowSize = currentWindow.getSize();
     }
 
+    int cursorCollisionCount = 0;
+
     void update(sf::Vector2i &mousePosition)
     {
         sf::Vector2i windowPosition = currentWindow.getPosition();
@@ -21,9 +23,16 @@ public:
         if (isMouseInWindow(windowPosition, windowSize, mousePosition))
         {
             currentWindow.clear(sf::Color::Red);
+
+            if (!collidedWithCursorLastUpdate)
+            {
+                collidedWithCursorLastUpdate = true;
+                cursorCollisionCount += 1;
+            }
         }
         else
         {
+            collidedWithCursorLastUpdate = false;
             currentWindow.clear(sf::Color::Green);
         }
 
@@ -54,6 +63,7 @@ private:
     sf::RenderWindow &currentWindow;
     sf::Vector2f direction;
     sf::Vector2u windowSize;
+    bool collidedWithCursorLastUpdate = false;
 
     bool isMouseInWindow(sf::Vector2i &windowPosition, sf::Vector2u &windowSize, sf::Vector2i &mousePosition)
     {

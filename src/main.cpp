@@ -45,7 +45,9 @@ void setupSprites(sf::RenderWindow &menuWindow, sf::Sprite *alien_sprites[])
 
 void setupMenu(sf::RenderWindow &menuWindow)
 {
-    menuWindow.setVerticalSyncEnabled(true);
+    menuWindow.setVerticalSyncEnabled(false);
+    menuWindow.setFramerateLimit(0);
+    menuWindow.setKeyRepeatEnabled(false);
     // Load font
 
     (void)fontRegular.openFromMemory(&BerlinTypeOffice_Regular_ttf, BerlinTypeOffice_Regular_ttf_len);
@@ -69,6 +71,7 @@ void setupMenu(sf::RenderWindow &menuWindow)
 }
 
 sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
+bool gameIsRunning = false;
 
 std::vector<std::unique_ptr<WindowManager>> active_windowManagers;
 std::vector<sf::RenderWindow> active_windows;
@@ -76,7 +79,7 @@ std::vector<sf::RenderWindow> active_windows;
 void StartGame()
 {
     // Set up windows
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 100; i++)
     {
         active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
     }
@@ -85,9 +88,10 @@ void StartGame()
 
     for (int i = 0; i < active_windows.size(); i++)
     {
-        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()) / 2);
+        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()));
         active_windows[i]
-            .setFramerateLimit(30);
+            .setFramerateLimit(0);
+        menuWindow.setKeyRepeatEnabled(false);
         active_windows[i].clear();
         active_windows[i].display();
     }
@@ -97,6 +101,12 @@ void StartGame()
     {
         active_windowManagers.push_back(std::make_unique<WindowManager>(active_windows[i]));
     }
+
+    gameIsRunning = true;
+
+    menuButtons[selectedIndex]->setFillColor(sf::Color::White);
+    selectedIndex = (selectedIndex + 1) % menuButtons.size();
+    menuButtons[selectedIndex]->setFillColor(sf::Color::Yellow);
 
     std::cout << "GameManager launched.\n";
 }
@@ -111,7 +121,32 @@ void Exit()
     }
 }
 
-void handleKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
+void handleKeyboardEvent(sf::RenderWindow &menuWindow)
+{
+    sf::Keyboard::Key key;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+        key = sf::Keyboard::Key::Up;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+        key = sf::Keyboard::Key::Down;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter))
+        key = sf::Keyboard::Key::Enter;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
+        key = sf::Keyboard::Key::Space;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        key = sf::Keyboard::Key::Escape;
+
+    if (key == sf::Keyboard::Key::Enter || key == sf::Keyboard::Key::Space || key == sf::Keyboard::Key::Escape)
+    {
+        Exit();
+    }
+}
+
+void handleExpensiveKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
 {
     if (key == sf::Keyboard::Key::Up)
     {
@@ -155,60 +190,80 @@ int main()
     sf::Sprite *alien_sprites[] = {&alien_1_sprite, &alien_2_sprite, &alien_3_sprite, &alien_4_sprite, &alien_5_sprite};
     setupSprites(menuWindow, alien_sprites);
 
+    int cursorCollisionCount = 0;
+    int level = 1;
+
     while (menuWindow.isOpen())
     {
         sf::Vector2i mousePosition = sf::Mouse::getPosition();
 
-        // check all the window's events that were triggered since the last iteration of the loop
-        while (const std::optional event = menuWindow.pollEvent())
+        // https://github.com/SFML/SFML/blob/601b5032e74c0a2ade6ba944e57f203f39fd2187/examples/event_handling/EventHandling.cpp#L161
+        if (!gameIsRunning)
         {
-            // "close requested" event: we close the window
-            if (event->is<sf::Event::Closed>())
-            {
-                Exit();
-            }
-            else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>())
-            {
-                handleKeyboardEvent(menuWindow, keyPressed->code);
-            }
+            menuWindow.handleEvents([&](const sf::Event::Closed &)
+                                    { Exit(); },
+                                    [&](const sf::Event::KeyPressed &event)
+                                    {
+                                        handleExpensiveKeyboardEvent(menuWindow, event.code);
+                                    });
+        }
+        else
+        {
+            handleKeyboardEvent(menuWindow);
         }
 
         menuWindow.clear(sf::Color(0, 81, 186));
 
-        for (int i = 0; i < menuButtons.size(); ++i)
+        if (!gameIsRunning)
         {
-            menuWindow.draw(*menuButtons[i]);
+            for (int i = 0; i < menuButtons.size(); ++i)
+            {
+                menuWindow.draw(*menuButtons[i]);
+            }
+        }
+        else
+        {
+            for (int i = 1; i < menuButtons.size(); ++i)
+            {
+                menuWindow.draw(*menuButtons[i]);
+            }
         }
 
-        // Create and configure the text
-        sf::Text mouseXText = sf::Text(fontBold);
-        mouseXText.setString(std::to_string(mousePosition.x));
-        mouseXText.setCharacterSize(24);
-        menuWindow.draw(mouseXText);
-
-        // Create and configure the text
-        sf::Text mouseYText = sf::Text(fontBold);
-        mouseYText.setString(std::to_string(mousePosition.y));
-        mouseYText.setCharacterSize(24);
-        mouseYText.setPosition(sf::Vector2f(100, 0));
-        menuWindow.draw(mouseYText);
-
-        if (!active_windows.empty())
+        // Game Statistics
+        if (gameIsRunning)
         {
+            // Base position for stats
+            float baseX = menuWindow.getSize().x - 200; // Align to the right
+            float baseY = 50;
+            float spacing = 40; // Space between stats
 
-            // Create and configure the text
-            sf::Text windowXText = sf::Text(fontBold);
-            windowXText.setString(std::to_string(active_windows[0].getPosition().x));
-            windowXText.setCharacterSize(24);
-            windowXText.setPosition(sf::Vector2f(0, 50));
-            menuWindow.draw(windowXText);
+            // Collision count (Windows Dodged)
+            sf::Text stat_windows(fontBold);
+            stat_windows.setString("Windows: " + std::to_string(active_windowManagers.size()));
+            stat_windows.setCharacterSize(24);
+            stat_windows.setPosition(sf::Vector2f(baseX, baseY));
+            menuWindow.draw(stat_windows);
 
-            // Create and configure the text
-            sf::Text windowYText = sf::Text(fontBold);
-            windowYText.setString(std::to_string(active_windows[0].getPosition().y));
-            windowYText.setCharacterSize(24);
-            windowYText.setPosition(sf::Vector2f(100, 50));
-            menuWindow.draw(windowYText);
+            // Speed Level
+            sf::Text stat_level(fontBold);
+            stat_level.setString("Level: " + std::to_string(1));
+            stat_level.setCharacterSize(24);
+            stat_level.setPosition(sf::Vector2f(baseX, baseY + spacing));
+            menuWindow.draw(stat_level);
+
+            // High Score
+            sf::Text stat_highScore(fontBold);
+            stat_highScore.setString("High Score: " + std::to_string(2));
+            stat_highScore.setCharacterSize(24);
+            stat_highScore.setPosition(sf::Vector2f(baseX, baseY + 2 * spacing));
+            menuWindow.draw(stat_highScore);
+
+            // Time Survived (if applicable)
+            sf::Text stat_time(fontBold);
+            stat_time.setString("Time: " + std::to_string(3) + "s");
+            stat_time.setCharacterSize(24);
+            stat_time.setPosition(sf::Vector2f(baseX, baseY + 3 * spacing));
+            menuWindow.draw(stat_time);
         }
 
         menuWindow.draw(alien_1_sprite);
@@ -218,10 +273,12 @@ int main()
         menuWindow.draw(alien_5_sprite);
         menuWindow.display();
 
-        mousePosition = sf::Mouse::getPosition() / 2;
+        //  MAC ONLY: mousePosition = mousePosition / 2;
+        cursorCollisionCount = 0;
         for (auto &manager : active_windowManagers)
         {
             manager->update(mousePosition);
+            cursorCollisionCount += manager->cursorCollisionCount;
         }
     }
 }
