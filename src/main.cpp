@@ -6,17 +6,18 @@
 #include <thread>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
-#include "GameManager.h"
-
+#include "WindowManager.h"
+#include "Utilities.h"
 
 sf::Font fontRegular;
 sf::Font fontBold;
 sf::Text startButton(fontRegular, ""), exitButton(fontRegular, "");
-std::vector<sf::Text*> menuButtons;
+std::vector<sf::Text *> menuButtons;
 int selectedIndex = 0;
 sf::Texture alien_1_texture, alien_2_texture, alien_3_texture, alien_4_texture, alien_5_texture;
 
-void setupTextures() {
+void setupTextures()
+{
 
     (void)alien_1_texture.loadFromMemory(__1_alien_png, __1_alien_png_len);
     (void)alien_2_texture.loadFromMemory(__2_alien_png, __2_alien_png_len);
@@ -25,10 +26,12 @@ void setupTextures() {
     (void)alien_5_texture.loadFromMemory(__5_alien_png, __5_alien_png_len);
 }
 
-void setupSprites(sf::RenderWindow& menuWindow, sf::Sprite* alien_sprites[]) {
-    sf::Texture* alien_textures[] = { &alien_1_texture, &alien_2_texture, &alien_3_texture, &alien_4_texture, &alien_5_texture };
+void setupSprites(sf::RenderWindow &menuWindow, sf::Sprite *alien_sprites[])
+{
+    sf::Texture *alien_textures[] = {&alien_1_texture, &alien_2_texture, &alien_3_texture, &alien_4_texture, &alien_5_texture};
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i)
+    {
         alien_sprites[i]->setScale({0.28f, 0.28f});
         alien_sprites[i]->setOrigin({0.f, static_cast<float>(alien_textures[i]->getSize().y)});
         alien_sprites[i]->setPosition({5.f + (i * 120), static_cast<float>(menuWindow.getSize().y) + 0});
@@ -41,10 +44,11 @@ void setupSprites(sf::RenderWindow& menuWindow, sf::Sprite* alien_sprites[]) {
     alien_sprites[3]->setPosition({5.f + 350, static_cast<float>(menuWindow.getSize().y) + 30});
 }
 
-void setupMenu(sf::RenderWindow& menuWindow) {
+void setupMenu(sf::RenderWindow &menuWindow)
+{
     menuWindow.setVerticalSyncEnabled(true);
     // Load font
-    
+
     (void)fontRegular.openFromMemory(&BerlinTypeOffice_Regular_ttf, BerlinTypeOffice_Regular_ttf_len);
     (void)fontBold.openFromMemory(&BerlinTypeOffice_Bold_ttf, BerlinTypeOffice_Bold_ttf_len);
 
@@ -66,62 +70,77 @@ void setupMenu(sf::RenderWindow& menuWindow) {
 }
 
 sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
-std::thread gameThread;
 
-void StartThreadForGame() {
-    if (GameManager::threadActive) return;
-    std::cout << "Starting GameManager in a new thread...\n";
+std::vector<std::thread> active_windows_threads;
+std::vector<WindowManager> active_windowManagers;
+std::vector<sf::RenderWindow> active_windows;
+void StartThreadForGame()
+{
 
-    // Create a new thread and start the game
-    gameThread = std::thread(GameManager::Start);
+    // Set up some windows
+    for (int i = 0; i < 30; i++)
+    {
+        active_windows.push_back(sf::RenderWindow(sf::VideoMode({100u, 100u}), "", sf::Style::None));
+        active_windowManagers.push_back(WindowManager());
+        active_windowManagers[i].currentWindow = active_windows[i];
+    }
+    sf::Vector2i mousePosition = sf::Mouse::getPosition();
+    for (int i = 0; i < active_windows.size(); i++)
+    {
+        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 500, i, active_windows.size()));
+        active_windows[i].setFramerateLimit(30);
+    }
 
-    // Detach the thread to run independently
-    gameThread.detach();
+    for (int i = 0; i < active_windows.size(); i++)
+    {
+        }
 
     std::cout << "GameManager launched.\n";
 }
 
-void Exit() {
-    // Wait for the game thread to complete before shutting down
-    if (gameThread.joinable()) {
-        gameThread.join();
+void Exit()
+{
+    for (int i = 0; i < active_windows_threads.size(); i++)
+    {
+        active_windows_threads[i].join();
     }
-
-    GameManager::Stop(); // Call Kill function directly (not through thread)
-    
-    while (!GameManager::threadDone){}
-    menuWindow.close();
+    GameManager::Stop();
 }
 
-void handleKeyboardEvent(sf::RenderWindow& menuWindow, sf::Keyboard::Key key)
+void handleKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
 {
-    if (key == sf::Keyboard::Key::Up) {
+    if (key == sf::Keyboard::Key::Up)
+    {
         menuButtons[selectedIndex]->setFillColor(sf::Color::White);
         selectedIndex = (selectedIndex - 1 + menuButtons.size()) % menuButtons.size();
         menuButtons[selectedIndex]->setFillColor(sf::Color::Yellow);
     }
-    else if (key == sf::Keyboard::Key::Down) {
+    else if (key == sf::Keyboard::Key::Down)
+    {
         menuButtons[selectedIndex]->setFillColor(sf::Color::White);
         selectedIndex = (selectedIndex + 1) % menuButtons.size();
         menuButtons[selectedIndex]->setFillColor(sf::Color::Yellow);
     }
-    else if (key == sf::Keyboard::Key::Enter || key == sf::Keyboard::Key::Space) {
-        if (menuButtons[selectedIndex]->getString() == "Start") {
+    else if (key == sf::Keyboard::Key::Enter || key == sf::Keyboard::Key::Space)
+    {
+        if (menuButtons[selectedIndex]->getString() == "Start")
+        {
             StartThreadForGame();
         }
-        else if (menuButtons[selectedIndex]->getString() == "Exit") {
+        else if (menuButtons[selectedIndex]->getString() == "Exit")
+        {
             Exit();
         }
     }
-    else if (key == sf::Keyboard::Key::Escape) {
+    else if (key == sf::Keyboard::Key::Escape)
+    {
         Exit();
     }
 }
 
-
 int main()
 {
-    
+
     setupMenu(menuWindow);
     setupTextures();
     sf::Sprite alien_1_sprite(alien_1_texture);
@@ -129,10 +148,8 @@ int main()
     sf::Sprite alien_3_sprite(alien_3_texture);
     sf::Sprite alien_4_sprite(alien_4_texture);
     sf::Sprite alien_5_sprite(alien_5_texture);
-    sf::Sprite* alien_sprites[] = { &alien_1_sprite, &alien_2_sprite, &alien_3_sprite, &alien_4_sprite, &alien_5_sprite };
+    sf::Sprite *alien_sprites[] = {&alien_1_sprite, &alien_2_sprite, &alien_3_sprite, &alien_4_sprite, &alien_5_sprite};
     setupSprites(menuWindow, alien_sprites);
-
-    
 
     while (menuWindow.isOpen())
     {
@@ -143,19 +160,19 @@ int main()
             if (event->is<sf::Event::Closed>())
             {
                 Exit();
-            } 
-            else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            }
+            else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>())
             {
                 handleKeyboardEvent(menuWindow, keyPressed->code);
             }
         }
-        
+
         menuWindow.clear(sf::Color(0, 81, 186));
 
-        for (int i = 0; i < menuButtons.size(); ++i) {
+        for (int i = 0; i < menuButtons.size(); ++i)
+        {
             menuWindow.draw(*menuButtons[i]);
         }
-
 
         menuWindow.draw(alien_1_sprite);
         menuWindow.draw(alien_2_sprite);
