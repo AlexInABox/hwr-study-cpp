@@ -81,8 +81,7 @@ void StartThreadForGame()
     for (int i = 0; i < 30; i++)
     {
         active_windows.push_back(sf::RenderWindow(sf::VideoMode({100u, 100u}), "", sf::Style::None));
-        active_windowManagers.push_back(WindowManager());
-        active_windowManagers[i].currentWindow = active_windows[i];
+        active_windowManagers.push_back(WindowManager(active_windows[i]));
     }
     sf::Vector2i mousePosition = sf::Mouse::getPosition();
     for (int i = 0; i < active_windows.size(); i++)
@@ -93,18 +92,13 @@ void StartThreadForGame()
 
     for (int i = 0; i < active_windows.size(); i++)
     {
-        }
+    }
 
     std::cout << "GameManager launched.\n";
 }
 
 void Exit()
 {
-    for (int i = 0; i < active_windows_threads.size(); i++)
-    {
-        active_windows_threads[i].join();
-    }
-    GameManager::Stop();
 }
 
 void handleKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Key key)
