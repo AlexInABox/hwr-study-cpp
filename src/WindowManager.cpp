@@ -2,59 +2,37 @@
 #include "Utilities.hpp"
 #include <iostream>
 
-WindowManager::WindowManager(sf::RenderWindow &window) : currentWindow(window)
+WindowManager::WindowManager()
 {
-    direction = generateRandomDirectionVector();
-    windowSize = currentWindow.getSize();
+    currentWindow = sf::RenderWindow(sf::VideoMode({250u, 200u}), "Freakish PopUp", sf::Style::Close);
+    currentWindow.setPosition(UTILITIES_HPP::generateRandomPositionAroundPoint(sf::Vector2i(2000, 2000), 500));
 }
 
-void WindowManager::update(sf::Vector2i &mousePosition)
+void WindowManager::update()
 {
-    sf::Vector2i windowPosition = currentWindow.getPosition();
-
-    if (isMouseInWindow(windowPosition, windowSize, mousePosition))
+    if (currentWindow.isOpen())
     {
-        currentWindow.clear(sf::Color::Red);
-
-        if (!collidedWithCursorLastUpdate)
+        while (const std::optional event = currentWindow.pollEvent())
         {
-            collidedWithCursorLastUpdate = true;
-            cursorCollisionCount += 1;
+            if (event->is<sf::Event::Closed>())
+            {
+                currentWindow.close();
+                isClosed = true;
+            }
         }
     }
-    else
-    {
-        collidedWithCursorLastUpdate = false;
-        currentWindow.clear(sf::Color::Green);
-    }
-
-    // Reflect direction if near monitor edge
-    if (isPointNearMonitorEdge(windowPosition, windowSize))
-    {
-        currentWindow.clear(sf::Color::Yellow);
-        direction = reflectDirection(windowPosition, windowSize, direction);
-    }
-
-    // Move the window in the current direction
-    int moveDistance = 5 * level;
-    int offsetX = static_cast<int>(direction.x * moveDistance);
-    int offsetY = static_cast<int>(direction.y * moveDistance);
-
-    currentWindow.setPosition(sf::Vector2i(windowPosition.x + offsetX, windowPosition.y + offsetY));
-    currentWindow.display();
 }
 
-void WindowManager::close()
+void WindowManager::unHide()
+{
+    if (currentWindow.isOpen())
+    {
+        currentWindow.setVisible(true);
+    }
+}
+
+void WindowManager::forceClose()
 {
     currentWindow.close();
-}
-
-bool WindowManager::isMouseInWindow(sf::Vector2i &windowPosition, sf::Vector2u &windowSize, sf::Vector2i &mousePosition)
-{
-    int xBegin = windowPosition.x;
-    int xEnd = windowPosition.x + windowSize.x;
-    int yBegin = windowPosition.y;
-    int yEnd = windowPosition.y + windowSize.y;
-
-    return (xBegin <= mousePosition.x && mousePosition.x <= xEnd) && (yBegin <= mousePosition.y && mousePosition.y <= yEnd);
+    isClosed = true;
 }

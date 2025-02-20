@@ -7,6 +7,7 @@
 #include "Textures.hpp"
 #include "WindowManager.hpp"
 #include "Utilities.hpp"
+#include <algorithm> // Required for std::remove_if (C++17 and earlier)
 
 sf::Font fontRegular;
 sf::Font fontBold;
@@ -76,7 +77,7 @@ void setupMenu(sf::RenderWindow &menuWindow)
     menuButtons[selectedIndex]->setFillColor(sf::Color(255, 218, 26)); // Highlight first button
 }
 
-sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Titlebar);
+sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
 bool gameIsRunning = false;
 sf::Clock levelClock;  // Timer for level increase
 sf::Clock globalTimer; // Timer for level increase
@@ -86,31 +87,6 @@ std::vector<sf::RenderWindow> active_windows;
 
 void StartGame()
 {
-    // Set up windows
-    for (int i = 0; i < 50; i++)
-    {
-        active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
-    }
-
-    sf::Vector2i mousePosition = sf::Mouse::getPosition();
-
-    for (int i = 0; i < active_windows.size(); i++)
-    {
-        active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()));
-        active_windows[i].setFramerateLimit(0);
-        active_windows[i].setVerticalSyncEnabled(false);
-        active_windows[i].setKeyRepeatEnabled(false);
-        active_windows[i].setIcon(icon);
-        active_windows[i].clear();
-        active_windows[i].display();
-    }
-
-    // Create WindowManagers
-    for (int i = 0; i < active_windows.size(); i++)
-    {
-        active_windowManagers.push_back(std::make_unique<WindowManager>(active_windows[i]));
-    }
-
     gameIsRunning = true;
 
     menuButtons[selectedIndex]->setFillColor(sf::Color::White);
@@ -123,13 +99,25 @@ void StartGame()
     std::cout << "GameManager launched.\n";
 }
 
+void spawnNewPopUp()
+{
+    // https://www.geeksforgeeks.org/how-to-remove-an-element-from-vector-in-cpp/
+    active_windowManagers.erase(
+        std::remove_if(active_windowManagers.begin(), active_windowManagers.end(),
+                       [](const std::unique_ptr<WindowManager> &wm)
+                       { return wm->isClosed; }),
+        active_windowManagers.end());
+
+    active_windowManagers.push_back(std::make_unique<WindowManager>());
+}
+
 void Exit()
 {
     menuWindow.close();
 
     for (auto &manager : active_windowManagers)
     {
-        manager->close();
+        manager->forceClose();
     }
 }
 
@@ -212,14 +200,18 @@ int main()
         {
             sf::Time elapsed = levelClock.getElapsedTime(); // Get elapsed time
 
-            if (elapsed.asSeconds() >= 7.5f) // Check if 5 seconds have passed
+            if (elapsed.asSeconds() >= 2.5f) // Check if 5 seconds have passed
             {
                 level++;              // Increase level
                 levelClock.restart(); // Reset the clock
+                spawnNewPopUp();      // Spawn a new popup
+
+                for (auto &manager : active_windowManagers)
+                {
+                    manager->unHide();
+                }
             }
         }
-
-        sf::Vector2i mousePosition = sf::Mouse::getPosition();
 
         while (const std::optional event = menuWindow.pollEvent())
         {
@@ -258,16 +250,9 @@ int main()
             float baseY = 50;
             float spacing = 40; // Space between stats
 
-            // Collision count (Windows Dodged)
-            sf::Text stat_score(fontBold);
-            stat_score.setString("High Score: " + std::to_string(highscore));
-            stat_score.setCharacterSize(24);
-            stat_score.setPosition(sf::Vector2f(baseX, baseY));
-            menuWindow.draw(stat_score);
-
             // High Score
             sf::Text stat_highScore(fontBold);
-            stat_highScore.setString("Score: " + std::to_string(cursorCollisionCount));
+            stat_highScore.setString("Score: " + std::to_string(active_windowManagers.size()));
             stat_highScore.setCharacterSize(24);
             stat_highScore.setPosition(sf::Vector2f(baseX, baseY + 1 * spacing));
             menuWindow.draw(stat_highScore);
@@ -298,14 +283,8 @@ int main()
         cursorCollisionCount = 0;
         for (auto &manager : active_windowManagers)
         {
-            manager->update(mousePosition);
+            manager->update();
             manager->level = level;
-            cursorCollisionCount += manager->cursorCollisionCount;
-            if (cursorCollisionCount > highscore)
-            {
-                highscore = cursorCollisionCount;
-                saveHighscore(highscore);
-            }
         }
     }
 }
