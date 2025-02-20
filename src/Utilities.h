@@ -7,8 +7,6 @@
 #include <ctime>
 #include <fstream>
 
-const static double M_PI = 3.14159265358979323846;
-
 // Function to generate a random position around a point with a fixed radius :3
 sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int radiusInPixels)
 {
