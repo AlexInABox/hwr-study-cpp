@@ -70,8 +70,10 @@ void setupMenu(sf::RenderWindow &menuWindow)
     menuButtons[selectedIndex]->setFillColor(sf::Color(255, 218, 26)); // Highlight first button
 }
 
-sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
+sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Titlebar);
 bool gameIsRunning = false;
+sf::Clock levelClock;  // Timer for level increase
+sf::Clock globalTimer; // Timer for level increase
 
 std::vector<std::unique_ptr<WindowManager>> active_windowManagers;
 std::vector<sf::RenderWindow> active_windows;
@@ -79,7 +81,7 @@ std::vector<sf::RenderWindow> active_windows;
 void StartGame()
 {
     // Set up windows
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 30; i++)
     {
         active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
     }
@@ -107,6 +109,9 @@ void StartGame()
     menuButtons[selectedIndex]->setFillColor(sf::Color::White);
     selectedIndex = (selectedIndex + 1) % menuButtons.size();
     menuButtons[selectedIndex]->setFillColor(sf::Color::Yellow);
+
+    levelClock.restart();
+    globalTimer.restart();
 
     std::cout << "GameManager launched.\n";
 }
@@ -192,9 +197,21 @@ int main()
 
     int cursorCollisionCount = 0;
     int level = 1;
+    int highscore = loadHighscore();
 
     while (menuWindow.isOpen())
     {
+        if (gameIsRunning)
+        {
+            sf::Time elapsed = levelClock.getElapsedTime(); // Get elapsed time
+
+            if (elapsed.asSeconds() >= 7.5f) // Check if 5 seconds have passed
+            {
+                level++;              // Increase level
+                levelClock.restart(); // Reset the clock
+            }
+        }
+
         sf::Vector2i mousePosition = sf::Mouse::getPosition();
 
         // https://github.com/SFML/SFML/blob/601b5032e74c0a2ade6ba944e57f203f39fd2187/examples/event_handling/EventHandling.cpp#L161
@@ -238,29 +255,29 @@ int main()
             float spacing = 40; // Space between stats
 
             // Collision count (Windows Dodged)
-            sf::Text stat_windows(fontBold);
-            stat_windows.setString("Windows: " + std::to_string(active_windowManagers.size()));
-            stat_windows.setCharacterSize(24);
-            stat_windows.setPosition(sf::Vector2f(baseX, baseY));
-            menuWindow.draw(stat_windows);
-
-            // Speed Level
-            sf::Text stat_level(fontBold);
-            stat_level.setString("Level: " + std::to_string(1));
-            stat_level.setCharacterSize(24);
-            stat_level.setPosition(sf::Vector2f(baseX, baseY + spacing));
-            menuWindow.draw(stat_level);
+            sf::Text stat_score(fontBold);
+            stat_score.setString("High Score: " + std::to_string(highscore));
+            stat_score.setCharacterSize(24);
+            stat_score.setPosition(sf::Vector2f(baseX, baseY));
+            menuWindow.draw(stat_score);
 
             // High Score
             sf::Text stat_highScore(fontBold);
-            stat_highScore.setString("High Score: " + std::to_string(2));
+            stat_highScore.setString("Score: " + std::to_string(cursorCollisionCount));
             stat_highScore.setCharacterSize(24);
-            stat_highScore.setPosition(sf::Vector2f(baseX, baseY + 2 * spacing));
+            stat_highScore.setPosition(sf::Vector2f(baseX, baseY + 1 * spacing));
             menuWindow.draw(stat_highScore);
+
+            // Speed Level
+            sf::Text stat_level(fontBold);
+            stat_level.setString("Level: " + std::to_string(level));
+            stat_level.setCharacterSize(24);
+            stat_level.setPosition(sf::Vector2f(baseX, baseY + 2 * spacing));
+            menuWindow.draw(stat_level);
 
             // Time Survived (if applicable)
             sf::Text stat_time(fontBold);
-            stat_time.setString("Time: " + std::to_string(3) + "s");
+            stat_time.setString("Time: " + std::to_string(globalTimer.getElapsedTime().asSeconds()) + "s");
             stat_time.setCharacterSize(24);
             stat_time.setPosition(sf::Vector2f(baseX, baseY + 3 * spacing));
             menuWindow.draw(stat_time);
@@ -278,7 +295,13 @@ int main()
         for (auto &manager : active_windowManagers)
         {
             manager->update(mousePosition);
+            manager->level = level;
             cursorCollisionCount += manager->cursorCollisionCount;
+            if (cursorCollisionCount > highscore)
+            {
+                highscore = cursorCollisionCount;
+                saveHighscore(highscore);
+            }
         }
     }
 }

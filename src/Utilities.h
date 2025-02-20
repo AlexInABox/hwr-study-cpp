@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 // Function to generate a random position around a point with a fixed radius :3
 sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int radiusInPixels)
@@ -82,6 +83,30 @@ sf::Vector2f reflectDirection(const sf::Vector2i &position, const sf::Vector2u &
     }
 
     return normalize(direction);
+}
+
+// Function to save data to a JSON file
+void saveHighscore(const int highscore)
+{
+    std::ofstream file("saveData.txt");
+    if (file.is_open())
+    {
+        file << highscore;
+        file.close();
+    }
+}
+
+// Function to load data from a JSON file
+int loadHighscore()
+{
+    std::ifstream file("saveData.txt");
+    int data;
+    if (file.is_open())
+    {
+        file >> data;
+        file.close();
+    }
+    return data;
 }
 
 #endif // UTILITIES_HPP

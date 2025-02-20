@@ -15,6 +15,7 @@ public:
     }
 
     int cursorCollisionCount = 0;
+    int level = 1;
 
     void update(sf::Vector2i &mousePosition)
     {
@@ -44,7 +45,7 @@ public:
         }
 
         // Move the window by moveDistance into a random direction!
-        int moveDistance = 18;
+        int moveDistance = 5 * level;
         int offsetX = static_cast<int>(direction.x * moveDistance);
         int offsetY = static_cast<int>(direction.y * moveDistance);
 
