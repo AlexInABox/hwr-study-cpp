@@ -2,6 +2,7 @@
 #define UTILITIES_HPP
 
 #include <SFML/Graphics.hpp>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
