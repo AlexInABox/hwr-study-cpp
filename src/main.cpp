@@ -46,8 +46,8 @@ void setupSprites(sf::RenderWindow &menuWindow, sf::Sprite *alien_sprites[])
 
 void setupMenu(sf::RenderWindow &menuWindow)
 {
-    menuWindow.setVerticalSyncEnabled(false);
-    menuWindow.setFramerateLimit(30);
+    menuWindow.setVerticalSyncEnabled(true);
+    menuWindow.setFramerateLimit(0);
     menuWindow.setKeyRepeatEnabled(false);
     // Load font
 
