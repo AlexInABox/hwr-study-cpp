@@ -5,8 +5,8 @@
 #include <string>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
-#include "WindowManager.h"
-#include "Utilities.h"
+#include "WindowManager.hpp"
+#include "Utilities.hpp"
 
 sf::Font fontRegular;
 sf::Font fontBold;

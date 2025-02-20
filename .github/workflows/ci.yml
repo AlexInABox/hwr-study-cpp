@@ -37,3 +37,14 @@ jobs:
 
     - name: Build
       run: cmake --build build --config Release
+
+    - name: Package Artifact
+      run: |
+        mkdir -p artifact
+        cp -r build/* artifact/
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
+        path: artifact/
