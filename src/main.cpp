@@ -87,7 +87,7 @@ std::vector<sf::RenderWindow> active_windows;
 void StartGame()
 {
     // Set up windows
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < 5; i++)
     {
         active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
     }
