@@ -47,7 +47,7 @@ void setupSprites(sf::RenderWindow &menuWindow, sf::Sprite *alien_sprites[])
 void setupMenu(sf::RenderWindow &menuWindow)
 {
     menuWindow.setVerticalSyncEnabled(false);
-    menuWindow.setFramerateLimit(0);
+    menuWindow.setFramerateLimit(100);
     menuWindow.setKeyRepeatEnabled(false);
     // Load font
 
@@ -98,7 +98,7 @@ void StartGame()
     {
         active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()));
         active_windows[i]
-            .setFramerateLimit(0);
+            .setFramerateLimit(30);
         active_windows[i].setKeyRepeatEnabled(false);
         active_windows[i].setIcon(icon);
         active_windows[i].clear();
