@@ -14,6 +14,7 @@ sf::Text startButton(fontRegular, ""), exitButton(fontRegular, "");
 std::vector<sf::Text *> menuButtons;
 int selectedIndex = 0;
 sf::Texture alien_1_texture, alien_2_texture, alien_3_texture, alien_4_texture, alien_5_texture;
+sf::Image icon;
 
 void setupTextures()
 {
@@ -52,6 +53,11 @@ void setupMenu(sf::RenderWindow &menuWindow)
 
     (void)fontRegular.openFromMemory(&BerlinTypeOffice_Regular_ttf, BerlinTypeOffice_Regular_ttf_len);
     (void)fontBold.openFromMemory(&BerlinTypeOffice_Bold_ttf, BerlinTypeOffice_Bold_ttf_len);
+
+    // Load Icons
+
+    (void)icon.loadFromMemory(logo_full_1to1_png, logo_full_1to1_png_len);
+    menuWindow.setIcon(icon);
 
     // Configure buttons
     startButton.setFont(fontBold);
@@ -93,7 +99,8 @@ void StartGame()
         active_windows[i].setPosition(UTILITIES_HPP::generateSpacedPositionsAroundPoint(mousePosition, 300, i, active_windows.size()));
         active_windows[i]
             .setFramerateLimit(0);
-        menuWindow.setKeyRepeatEnabled(false);
+        active_windows[i].setKeyRepeatEnabled(false);
+        active_windows[i].setIcon(icon);
         active_windows[i].clear();
         active_windows[i].display();
     }
