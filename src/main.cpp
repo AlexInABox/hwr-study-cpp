@@ -87,7 +87,7 @@ std::vector<sf::RenderWindow> active_windows;
 void StartGame()
 {
     // Set up windows
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 50; i++)
     {
         active_windows.emplace_back(sf::RenderWindow(sf::VideoMode(sf::Vector2u(100, 100)), " ", sf::Style::None));
     }
@@ -221,19 +221,16 @@ int main()
 
         sf::Vector2i mousePosition = sf::Mouse::getPosition();
 
-        // https://github.com/SFML/SFML/blob/601b5032e74c0a2ade6ba944e57f203f39fd2187/examples/event_handling/EventHandling.cpp#L161
-        if (!gameIsRunning)
+        while (const std::optional event = menuWindow.pollEvent())
         {
-            menuWindow.handleEvents([&](const sf::Event::Closed &)
-                                    { Exit(); },
-                                    [&](const sf::Event::KeyPressed &event)
-                                    {
-                                        handleExpensiveKeyboardEvent(menuWindow, event.code);
-                                    });
-        }
-        else
-        {
-            handleKeyboardEvent(menuWindow);
+            if (event->is<sf::Event::Closed>())
+            {
+                menuWindow.close();
+            }
+            else if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                handleExpensiveKeyboardEvent(menuWindow, keyPressed->code);
+            }
         }
 
         menuWindow.clear(sf::Color(0, 81, 186));
