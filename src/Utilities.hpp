@@ -72,4 +72,11 @@ void saveHighscore(int highscore);
  */
 int loadHighscore();
 
+/**
+ * @brief Returns the refernce to a random popup image texture.
+ *
+ * @return A random popup image texture.
+ */
+sf::Texture getRandomPopUpTexture();
+
 #endif // UTILITIES_HPP

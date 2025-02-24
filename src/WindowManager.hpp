@@ -37,6 +37,24 @@ public:
 
 private:
     sf::RenderWindow currentWindow; ///< Reference to the SFML render window.
+    int randomNumber;               ///< Random number that dictates the window's properties.
+    const std::vector<std::u32string> popupTitles = {
+        U"🚨 WARNING: Your PC is Infected!",
+        U"💰 YOU WON $1,000,000! 🎉",
+        U"🔥 HACKER ALERT! Change Passwords!",
+        U"🖥️ Free RAM Upgrade! 🆓 Click now!",
+        U"📢 You are the 1,000,000th visitor! 🎯",
+        U"🔞 HOT Singles in Your Area! 💋",
+        U"🔋 Battery Virus Detected! ⚠️ Fix now!",
+        U"🎮 FREE ROBUX? ⚡ Get before it's gone!",
+        U"💾 Windows Needs an Urgent Update! ⏳",
+        U"🐱‍💻 AI Detected You! Solve CAPTCHA Now!",
+        U"💻 System Overload! Click to Fix Instantly!",
+        U"🎁 You Won a FREE iPhone 20 Pro Ultra! 📱",
+        U"⚠️ FBI Alert: Illegal Browsing Detected! 🚔",
+        U"💀 CRITICAL ERROR: Your PC is DYING! ☠️",
+        U"🤖 Virus.exe is now controlling your mouse! 🕷️"}; ///< List of popup titles.
+    sf::Texture randomTexture;                              ///< Random texture for the popup window.
 };
 
 #endif // WINDOW_MANAGER_HPP

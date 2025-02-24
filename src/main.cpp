@@ -8,6 +8,7 @@
 #include "WindowManager.hpp"
 #include "Utilities.hpp"
 #include <algorithm> // Required for std::remove_if (C++17 and earlier)
+#include <cmath>
 
 sf::Font fontRegular;
 sf::Font fontBold;
@@ -77,7 +78,7 @@ void setupMenu(sf::RenderWindow &menuWindow)
     menuButtons[selectedIndex]->setFillColor(sf::Color(255, 218, 26)); // Highlight first button
 }
 
-sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dodge the uh.. windows. :3", sf::Style::Default);
+sf::RenderWindow menuWindow = sf::RenderWindow(sf::VideoMode({600u, 450u}), "Dismiss the PopUps!", sf::Style::Default);
 bool gameIsRunning = false;
 sf::Clock levelClock;  // Timer for level increase
 sf::Clock globalTimer; // Timer for level increase
@@ -190,21 +191,34 @@ int main()
     sf::Sprite *alien_sprites[] = {&alien_1_sprite, &alien_2_sprite, &alien_3_sprite, &alien_4_sprite, &alien_5_sprite};
     setupSprites(menuWindow, alien_sprites);
 
-    int cursorCollisionCount = 0;
     int level = 1;
+    float spawnInterval = 2.5f;   // The intervall at which to increase the level
+    const int eventInterval = 10; // Every x levels spawn an event or increase the amount of spawned popups
+    int amountOfPopUpsToSpawnPerLevel = 1;
+
     int highscore = loadHighscore();
 
     while (menuWindow.isOpen())
     {
         if (gameIsRunning)
         {
-            sf::Time elapsed = levelClock.getElapsedTime(); // Get elapsed time
+            float elapsedTime = levelClock.getElapsedTime().asSeconds();
 
-            if (elapsed.asSeconds() >= 2.5f) // Check if 5 seconds have passed
+            if (elapsedTime >= spawnInterval)
             {
-                level++;              // Increase level
-                levelClock.restart(); // Reset the clock
-                spawnNewPopUp();      // Spawn a new popup
+                level++;
+                levelClock.restart();
+
+                if (level % eventInterval == 0)
+                {
+                    amountOfPopUpsToSpawnPerLevel++;
+                    spawnInterval += 0.75f;
+                }
+
+                for (int i = 0; i < amountOfPopUpsToSpawnPerLevel; i++)
+                {
+                    spawnNewPopUp();
+                }
 
                 for (auto &manager : active_windowManagers)
                 {
@@ -280,7 +294,6 @@ int main()
         menuWindow.display();
 
         //  MAC ONLY: mousePosition = mousePosition / 2;
-        cursorCollisionCount = 0;
         for (auto &manager : active_windowManagers)
         {
             manager->update();

@@ -1,4 +1,5 @@
 #include "Utilities.hpp"
+#include "Textures.hpp"
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -77,4 +78,28 @@ int loadHighscore()
         file.close();
     }
     return data;
+}
+
+sf::Texture popup_1_texture = sf::Texture(__1_png, __1_png_len);
+sf::Texture popup_2_texture = sf::Texture(__2_png, __2_png_len);
+sf::Texture popup_3_texture = sf::Texture(__3_png, __3_png_len);
+sf::Texture popup_4_texture = sf::Texture(__4_png, __4_png_len);
+sf::Texture popup_5_texture = sf::Texture(__5_png, __5_png_len);
+sf::Texture popup_6_texture = sf::Texture(__6_png, __6_png_len);
+sf::Texture popup_7_texture = sf::Texture(__7_png, __7_png_len);
+sf::Texture popup_8_texture = sf::Texture(__8_png, __8_png_len);
+sf::Texture popup_9_texture = sf::Texture(__9_png, __9_png_len);
+sf::Texture popup_10_texture = sf::Texture(__10_png, __10_png_len);
+sf::Texture popup_11_texture = sf::Texture(__11_png, __11_png_len);
+sf::Texture popup_12_texture = sf::Texture(__12_png, __12_png_len);
+sf::Texture popup_13_texture = sf::Texture(__13_png, __13_png_len);
+sf::Texture popup_14_texture = sf::Texture(__14_png, __14_png_len);
+sf::Texture popup_15_texture = sf::Texture(__15_png, __15_png_len);
+sf::Texture popup_16_texture = sf::Texture(__16_png, __16_png_len);
+sf::Texture popup_17_texture = sf::Texture(__17_png, __17_png_len);
+sf::Texture *popop_textures[] = {&popup_1_texture, &popup_2_texture, &popup_3_texture, &popup_4_texture, &popup_5_texture, &popup_6_texture, &popup_7_texture, &popup_8_texture, &popup_9_texture, &popup_10_texture, &popup_11_texture, &popup_12_texture, &popup_13_texture, &popup_14_texture, &popup_15_texture, &popup_16_texture, &popup_17_texture};
+
+sf::Texture getRandomPopUpTexture()
+{
+    return *popop_textures[rand() % 17];
 }
