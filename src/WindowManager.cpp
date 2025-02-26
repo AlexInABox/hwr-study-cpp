@@ -11,7 +11,7 @@ WindowManager::WindowManager()
     randomTexture = UTILITIES_HPP::getRandomPopUpTexture();
 
     currentWindow = sf::RenderWindow(sf::VideoMode({400u, 250u}), sfTitle, sf::Style::Close);
-    currentWindow.setPosition(UTILITIES_HPP::generateRandomPositionAroundPoint(sf::Vector2i(2000, 2000), 500));
+    currentWindow.setPosition(UTILITIES_HPP::generateRandomPositionWithPadding(400, 250));
 
     sf::Sprite background = sf::Sprite(randomTexture);
 

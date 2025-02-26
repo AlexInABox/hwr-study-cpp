@@ -14,6 +14,11 @@ sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int ra
     return sf::Vector2i(point.x + offsetX, point.y + offsetY);
 }
 
+sf::Vector2i generateRandomPositionWithPadding(int paddingRight, int paddingToBottom)
+{
+    return sf::Vector2i(rand() % (screenSize.x - paddingRight), rand() % (screenSize.y - paddingToBottom));
+}
+
 sf::Vector2i generateSpacedPositionsAroundPoint(const sf::Vector2i &point, int radiusInPixels, int index, int maxIndex)
 {
     double theta = (2 * M_PI) * (static_cast<double>(index + 1) / maxIndex);

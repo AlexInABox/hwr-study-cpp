@@ -293,7 +293,6 @@ int main()
         menuWindow.draw(alien_5_sprite);
         menuWindow.display();
 
-        //  MAC ONLY: mousePosition = mousePosition / 2;
         for (auto &manager : active_windowManagers)
         {
             manager->update();
