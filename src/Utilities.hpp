@@ -23,6 +23,15 @@ sf::Vector2i generateRandomPositionOnScreenWithPadding(int padding = 500);
 sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int radiusInPixels);
 
 /**
+ * @brief Generates a random position within the bound of the screen
+ * @param paddingToRight The padding to the right of the screen
+ * @param paddingToBottom The padding to the bottom of the screen
+ *
+ * @return Random position as an sf::Vector2i
+ */
+sf::Vector2i generateRandomPositionWithPadding(int paddingToRight, int paddingToBottom);
+
+/**
  * @brief Generates evenly spaced positions around a point in a circle.
  *
  * @param point The center point.
