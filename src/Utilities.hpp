@@ -4,12 +4,21 @@
 #include <SFML/Graphics.hpp>
 #include <fstream>
 
+
+/**
+ * @brief Generates a random position somewhere inside the screen bounds with a given padding. The padding only applies to the right and bottom.
+ *
+ * @param padding The space between the random postion and the screen borders.
+ * @return Random position as a sf::Vector2i.
+ */
+sf::Vector2i generateRandomPositionOnScreenWithPadding(int padding = 500);
+
 /**
  * @brief Generates a random position around a given point within a fixed radius.
  *
  * @param point The center point.
  * @param radiusInPixels The radius within which to generate the position.
- * @return Random position as an sf::Vector2i.
+ * @return Random position as a sf::Vector2i.
  */
 sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int radiusInPixels);
 
@@ -20,7 +29,7 @@ sf::Vector2i generateRandomPositionAroundPoint(const sf::Vector2i &point, int ra
  * @param radiusInPixels The circle's radius.
  * @param index The index of the position.
  * @param maxIndex The total number of positions.
- * @return A spaced position as an sf::Vector2i.
+ * @return A spaced position as a sf::Vector2i.
  */
 sf::Vector2i generateSpacedPositionsAroundPoint(const sf::Vector2i &point, int radiusInPixels, int index, int maxIndex);
 
@@ -73,7 +82,7 @@ void saveHighscore(int highscore);
 int loadHighscore();
 
 /**
- * @brief Returns the refernce to a random popup image texture.
+ * @brief Returns the reference to a random popup image texture.
  *
  * @return A random popup image texture.
  */
