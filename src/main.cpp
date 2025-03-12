@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <iostream>
 #include <string>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
@@ -74,7 +73,7 @@ void setupMenu(sf::RenderWindow &menuWindow) {
     startButton.setPosition({50.f, 100.f});
 
     exitButton.setFont(fontRegular);
-    exitButton.setString("Exit");
+    exitButton.setString("Quit");
     exitButton.setCharacterSize(30);
     exitButton.setFillColor(sf::Color::White);
     exitButton.setPosition({50.f, 150.f});
@@ -100,8 +99,6 @@ void StartGame() {
 
     levelClock.restart();
     globalTimer.restart();
-
-    std::cout << "GameManager launched.\n";
 }
 
 void freeClosedPopUps() {
@@ -159,7 +156,7 @@ void handleExpensiveKeyboardEvent(sf::RenderWindow &menuWindow, sf::Keyboard::Ke
     } else if (key == sf::Keyboard::Key::Enter || key == sf::Keyboard::Key::Space) {
         if (menuButtons[selectedIndex]->getString() == "Start") {
             StartGame();
-        } else if (menuButtons[selectedIndex]->getString() == "Exit") {
+        } else if (menuButtons[selectedIndex]->getString() == "Quit") {
             Exit();
         }
     } else if (key == sf::Keyboard::Key::Escape) {
@@ -186,13 +183,19 @@ int main() {
     float baseY = 50;
     float spacing = 40; // Space between stats
 
+    // Menu Highscore
+    sf::Text stat_alternativeHighScore(fontBold);
+    stat_alternativeHighScore.setString("Highscore: " + std::to_string(loadHighscore()));
+    stat_alternativeHighScore.setCharacterSize(24);
+    stat_alternativeHighScore.setPosition(sf::Vector2f(baseX, baseY + 5 * spacing));
+
     // High Score
     sf::Text stat_highScore(fontBold);
     stat_highScore.setString("Highscore: " + std::to_string(loadHighscore()));
     stat_highScore.setCharacterSize(24);
     stat_highScore.setPosition(sf::Vector2f(baseX, baseY + 1 * spacing));
 
-    // High Score
+    // Open Pop-ups
     sf::Text stat_openPopUps(fontBold);
     stat_openPopUps.setString("Open PopUps: 0/10");
     stat_openPopUps.setCharacterSize(24);
@@ -266,6 +269,7 @@ int main() {
             }
             menuWindow.draw(arrowKeysSprite);
             menuWindow.draw(spaceAndEnterSprite);
+            menuWindow.draw(stat_alternativeHighScore);
         } else {
             //Only draw the exit button
             menuWindow.draw(*menuButtons[1]);
