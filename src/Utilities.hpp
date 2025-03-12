@@ -2,7 +2,6 @@
 #define UTILITIES_HPP
 
 #include <SFML/Graphics.hpp>
-#include <fstream>
 
 
 /**

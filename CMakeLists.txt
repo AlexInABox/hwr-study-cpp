@@ -12,9 +12,9 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main WIN32 src/main.cpp src/Utilities.cpp src/WindowManager.cpp)
+add_executable(main WIN32 src/main.cpp src/Utilities.cpp src/Popup.cpp)
 
-target_compile_features(main PRIVATE cxx_std_17)
+target_compile_features(main PRIVATE cxx_std_20)
 target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio)
 
 # Only link sfml-main on Windows

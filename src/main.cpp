@@ -4,7 +4,7 @@
 #include <string>
 #include "BerlinTypeOffice.hpp"
 #include "Textures.hpp"
-#include "WindowManager.hpp"
+#include "Popup.hpp"
 #include "Utilities.hpp"
 #include <algorithm> // Required for std::remove_if (C++17 and earlier)
 
@@ -88,7 +88,7 @@ bool gameIsRunning = false;
 sf::Clock levelClock; // Timer for level increase
 sf::Clock globalTimer; // Timer for level increase
 
-std::vector<std::unique_ptr<WindowManager> > active_windowManagers;
+std::vector<std::unique_ptr<Popup> > active_popups;
 std::vector<sf::RenderWindow> active_windows;
 
 void StartGame() {
@@ -104,23 +104,22 @@ void StartGame() {
     std::cout << "GameManager launched.\n";
 }
 
-void removeClosedPopUps() {
+void freeClosedPopUps() {
     // https://www.geeksforgeeks.org/how-to-remove-an-element-from-vector-in-cpp/
-    active_windowManagers.erase(
-        std::remove_if(active_windowManagers.begin(), active_windowManagers.end(),
-                       [](const std::unique_ptr<WindowManager> &wm) { return wm->isClosed; }),
-        active_windowManagers.end());
+    active_popups.erase(
+        std::remove_if(active_popups.begin(), active_popups.end(),
+                       [](const std::unique_ptr<Popup> &wm) { return wm->isClosed; }),
+        active_popups.end());
 }
 
 void spawnNewPopUp() {
-    removeClosedPopUps();
-    active_windowManagers.push_back(std::make_unique<WindowManager>());
+    active_popups.push_back(std::make_unique<Popup>());
 }
 
 void Exit() {
     menuWindow.close();
 
-    for (const auto &manager: active_windowManagers) {
+    for (const auto &manager: active_popups) {
         manager->forceClose();
     }
 }
@@ -219,28 +218,6 @@ int main() {
 
 
     while (menuWindow.isOpen()) {
-        if (gameIsRunning) {
-            float elapsedTime = levelClock.getElapsedTime().asSeconds();
-
-            if (elapsedTime >= spawnInterval) {
-                level++;
-                levelClock.restart();
-
-                if (level % eventInterval == 0) {
-                    amountOfPopUpsToSpawnPerLevel++;
-                    spawnInterval += 0.75f;
-                }
-
-                for (int i = 0; i < amountOfPopUpsToSpawnPerLevel; i++) {
-                    spawnNewPopUp();
-                }
-
-                for (auto &manager: active_windowManagers) {
-                    manager->unHide();
-                }
-            }
-        }
-
         while (const std::optional event = menuWindow.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 menuWindow.close();
@@ -249,61 +226,86 @@ int main() {
             }
         }
 
+        //GAME LOGIC
+        if (gameIsRunning) {
+            if (levelClock.getElapsedTime().asSeconds() >= spawnInterval) {
+                level++;
+                levelClock.restart();
+
+                if (level % eventInterval == 0) {
+                    amountOfPopUpsToSpawnPerLevel++;
+                    spawnInterval += 0.75f;
+                }
+
+                freeClosedPopUps();
+                for (int i = 0; i < amountOfPopUpsToSpawnPerLevel; ++i) {
+                    spawnNewPopUp();
+                }
+
+                //If a popup was hidden on accident this is the time to unhide it.
+                for (auto &manager: active_popups) {
+                    manager->unHide();
+                }
+            }
+        }
+        //END-OF GAME LOGIC
+
+        //VISUAL APPEARANCE
         menuWindow.clear(sf::Color(0, 81, 186));
 
-        if (!gameIsRunning) {
-            for (auto &menuButton: menuButtons) {
-                menuWindow.draw(*menuButton);
-            }
-
-            menuWindow.draw(arrowKeysSprite);
-            menuWindow.draw(spaceAndEnterSprite);
-        } else {
-            for (int i = 1; i < menuButtons.size(); ++i) {
-                menuWindow.draw(*menuButtons[i]);
-            }
-        }
-
-        // Game Statistics
-        if (gameIsRunning) {
-            menuWindow.draw(stat_highScore);
-
-            stat_openPopUps.setString("Open PopUps: " + std::to_string(active_windowManagers.size()) + "/10");
-            menuWindow.draw(stat_openPopUps);
-
-            stat_level.setString("Level: " + std::to_string(level));
-            menuWindow.draw(stat_level);
-
-            stat_time.setString("Time: " + std::to_string(globalTimer.getElapsedTime().asSeconds()) + "s");
-            menuWindow.draw(stat_time);
-        }
-
-        if (active_windowManagers.size() >= 10 && gameIsRunning) {
-            for (auto &manager: active_windowManagers) {
-                manager->loudClose();
-                sf::sleep(sf::milliseconds(200)); // Ensure sound plays before closing
-            }
-            removeClosedPopUps();
-            globalTimer.reset();
-            if (loadHighscore() < level) {
-                saveHighscore(level);
-                stat_highScore.setString("Highscore: " + std::to_string(level));
-            }
-            level = 1;
-            amountOfPopUpsToSpawnPerLevel = 1;
-            gameIsRunning = false;
-        }
-
+        // Draw decorations
         menuWindow.draw(alien_1_sprite);
         menuWindow.draw(alien_2_sprite);
         menuWindow.draw(alien_3_sprite);
         menuWindow.draw(alien_4_sprite);
         menuWindow.draw(alien_5_sprite);
-        menuWindow.display();
 
-        for (auto &manager: active_windowManagers) {
+        if (!gameIsRunning) {
+            for (const auto &menuButton: menuButtons) {
+                menuWindow.draw(*menuButton);
+            }
+            menuWindow.draw(arrowKeysSprite);
+            menuWindow.draw(spaceAndEnterSprite);
+        } else {
+            //Only draw the exit button
+            menuWindow.draw(*menuButtons[1]);
+
+            // Update game statistics
+            stat_openPopUps.setString("Open PopUps: " + std::to_string(active_popups.size()) + "/10");
+            stat_level.setString("Level: " + std::to_string(level));
+            stat_time.setString("Time: " + std::format("{:.2f}", globalTimer.getElapsedTime().asSeconds()) + "s");
+
+            menuWindow.draw(stat_highScore);
+            menuWindow.draw(stat_openPopUps);
+            menuWindow.draw(stat_level);
+            menuWindow.draw(stat_time);
+        }
+        menuWindow.display();
+        //END-OF APPEARANCE
+
+        //GAME ENDING LOGIC
+        if (gameIsRunning && active_popups.size() >= 10) {
+            for (auto &manager: active_popups) {
+                manager->loudClose();
+                sf::sleep(sf::milliseconds(200));
+            }
+
+            freeClosedPopUps();
+            globalTimer.reset();
+
+            if (loadHighscore() < level) {
+                saveHighscore(level);
+                stat_highScore.setString("Highscore: " + std::to_string(level));
+            }
+
+            level = 1;
+            amountOfPopUpsToSpawnPerLevel = 1;
+            gameIsRunning = false;
+        }
+        //END-OF GAME ENDING LOGIC
+
+        for (auto &manager: active_popups) {
             manager->update();
-            manager->level = level;
         }
     }
 }
