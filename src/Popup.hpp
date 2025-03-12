@@ -9,15 +9,12 @@
 /**
  * @brief A custom wrapper for a PopUp window in the game. Each instance of this class manages a single popup window.
  */
-class WindowManager {
+class Popup {
 public:
     /**
      * @brief Constructs a PopUp with random properties.
      */
-    WindowManager();
-
-    /// The current difficulty level affecting some randomness maybe?
-    int level = 1;
+    Popup();
 
     /// The state of the current window.
     bool isClosed = false;

@@ -1,10 +1,10 @@
-#include "WindowManager.hpp"
+#include "Popup.hpp"
 #include "Utilities.hpp"
 #include "Sounds.hpp"
 #include <SFML/Audio.hpp>
 #include <iostream>
 
-WindowManager::WindowManager() {
+Popup::Popup() {
     randomNumber = rand() % 100;
     const std::u32string randomTitle = popupTitles[rand() % popupTitles.size()];
     const sf::String sfTitle(randomTitle);
@@ -30,7 +30,7 @@ WindowManager::WindowManager() {
     openSound.play();
 }
 
-void WindowManager::update() {
+void Popup::update() {
     if (currentWindow.isOpen()) {
         while (const std::optional event = currentWindow.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -42,18 +42,18 @@ void WindowManager::update() {
     }
 }
 
-void WindowManager::unHide() {
+void Popup::unHide() {
     if (currentWindow.isOpen()) {
         currentWindow.setVisible(true);
     }
 }
 
-void WindowManager::forceClose() {
+void Popup::forceClose() {
     currentWindow.close();
     isClosed = true;
 }
 
-void WindowManager::loudClose() {
+void Popup::loudClose() {
     dismissSound.play();
     currentWindow.close();
     isClosed = true;

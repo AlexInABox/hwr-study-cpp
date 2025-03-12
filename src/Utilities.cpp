@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 const sf::Vector2u screenSize = sf::VideoMode::getDesktopMode().size;
 
